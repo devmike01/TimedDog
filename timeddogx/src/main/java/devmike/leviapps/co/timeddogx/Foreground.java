@@ -10,6 +10,7 @@ import android.util.Log;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Deprecated
 public class Foreground implements Application.ActivityLifecycleCallbacks {
 
     public static final long CHECK_DELAY = 500;

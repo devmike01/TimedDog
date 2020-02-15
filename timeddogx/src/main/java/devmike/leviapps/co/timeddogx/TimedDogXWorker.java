@@ -1,20 +1,18 @@
 package devmike.leviapps.co.timeddogx;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.SystemClock;
-import android.print.PrinterId;
 import android.util.Log;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+import devmike.leviapps.co.timeddogx.utils.TimeDogAppLifecycle;
 
 /**
  * Created by Gbenga Oladipupo on 2019-12-27.
@@ -70,12 +68,9 @@ public class TimedDogXWorker extends Worker implements Handler.Callback{
 
             if (idle >= timeOut) {
 
-                if (Foreground.get().isForeground()) {
+                if (TimeDogAppLifecycle.getTimeDogAppLifecycleEvents().isForeground()) {
                     handler.sendEmptyMessage(FOREGROUND);
-                    //Intent starter = new Intent(getApplicationContext(), MainActivity.class);
-                    //starter.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent
-                    // .FLAG_ACTIVITY_CLEAR_TASK);
-                    // getApplicationContext().startActivity(starter);
+
 
                     Log.d(TAG, "Time out in foreground!");
                 } else {

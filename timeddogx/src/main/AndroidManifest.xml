@@ -1,2 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="devmike.leviapps.co.timeddogx" />
+    package="devmike.leviapps.co.timeddogx" >
+
+    <application></application>
+</manifest>
