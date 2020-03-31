@@ -1,14 +1,18 @@
 package devmike.leviapps.co.timeddogx;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
+import java.lang.ref.WeakReference;
+
 import androidx.annotation.NonNull;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
@@ -17,43 +21,54 @@ import devmike.leviapps.co.timeddogx.utils.TimeDogAppLifecycle;
 /**
  * Created by Gbenga Oladipupo on 2019-12-27.
  */
-public class TimedDogXWorker extends Worker implements Handler.Callback{
+public class TimedDogXWorker extends Worker{
 
     private static final String TAG = "TimeOutDog";
     private boolean isCancelled;
 
     private static long lastUsed;
 
-    public static final int FOREGROUND = -1;
+    public static final String LOGOUT_CHECK ="LOGOUT_CHECK";
 
-    public static final int BACKGROUND =0;
+    private static final int FOREGROUND_WHAT =1;
 
-    private final Handler handler;
+    public static final String BACKGROUND_TO_FOREGROUND ="_BACKGROUND_TO_FOREGROUND_STORE";
 
-    private static OnTimeOutListener onTimeOutListener;
+    private SharedPreferences sharedPreferences;
+
+    public static long TIMEOUT =1;
+
+    private static Handler handler;
+
 
     public interface OnTimeOutListener{
-        void onTimeOut(boolean isForeground);
+        void onTimeOut(boolean isBackground);
     }
 
     public TimedDogXWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
-        final HandlerThread thread = new HandlerThread("HandlerThread");
-        thread.start();
-        handler = new Handler(thread.getLooper(), this);
+        sharedPreferences = context.getSharedPreferences(BACKGROUND_TO_FOREGROUND,
+                Context.MODE_PRIVATE);
     }
 
-    private static void startOneTime(Context context, OnTimeOutListener listener){
-        onTimeOutListener = listener;
+
+    private static void startOneTime(Context context, Builder builder){
+        initHandler(builder);
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(TimedDogXWorker.class).build();
         WorkManager.getInstance(context).enqueue(request);
     }
 
+
+    private static void initHandler(Builder builder){
+        HandlerThread handlerThread = new HandlerThread("TimedDogHandler");
+        handlerThread.start();
+        handler =new Handler(handlerThread.getLooper(), builder);
+    }
+
+
     @NonNull
     @Override
     public Result doWork() {
-
-
         long idle;
         touch();
 
@@ -62,21 +77,13 @@ public class TimedDogXWorker extends Worker implements Handler.Callback{
             idle = System.currentTimeMillis() - lastUsed;
             SystemClock.sleep(1000);
 
-
-            long timeOut = Builder.TIMEOUT;
-
-
-            if (idle >= timeOut) {
+            if (idle >= TIMEOUT) {
 
                 if (TimeDogAppLifecycle.getTimeDogAppLifecycleEvents().isForeground()) {
-                    handler.sendEmptyMessage(FOREGROUND);
-
-
-                    Log.d(TAG, "Time out in foreground!");
+                    keepInBackground(false);
+                    handler.sendEmptyMessage(FOREGROUND_WHAT);
                 } else {
-
-                    handler.sendEmptyMessage(BACKGROUND);
-                    Log.d(TAG, "Time out in background!");
+                    keepInBackground(true);
                 }
 
                 setCancelled(true);
@@ -86,6 +93,11 @@ public class TimedDogXWorker extends Worker implements Handler.Callback{
         }
 
         return Result.success();
+    }
+
+
+    private void keepInBackground(boolean isInBackground){
+        sharedPreferences.edit().putBoolean(LOGOUT_CHECK, isInBackground).apply();
     }
 
     public static synchronized void touch() {
@@ -101,63 +113,65 @@ public class TimedDogXWorker extends Worker implements Handler.Callback{
         isCancelled = cancelled;
     }
 
-    @Override
-    public boolean handleMessage(@NonNull Message msg) {
-        if (onTimeOutListener != null){
-            onTimeOutListener.onTimeOut((msg.what <0));
-        }
-        return false;
-    }
 
-    public static class Builder{
+    public static class Builder implements Handler.Callback {
 
         private Context context;
 
         private long milliseconds;
 
-        public static long TIMEOUT =1;
+        private SharedPreferences sharedPreferences;
 
         private OnTimeOutListener onTimeOutListener;
 
-
         public Builder(Context context){
             this.context = context;
+            sharedPreferences = context.getSharedPreferences(BACKGROUND_TO_FOREGROUND,
+                            Context.MODE_PRIVATE);
         }
 
         public Builder minute(int minute){
             seconds(60 *minute);
-            Log.d("TimeoutBuilder", "MINUTE");
             return this;
         }
 
         public Builder seconds(long seconds){
             milliseconds(seconds * 1000);
-            Log.d("TimeoutBuilder", "SECONDS");
             return this;
         }
 
         public Builder milliseconds(long milliseconds){
             this.milliseconds = milliseconds;
-            Log.d("TimeoutBuilder", "MILLISECONDS");
             return this;
         }
 
-        public Builder listener(OnTimeOutListener onTimeOutListener){
+        public Builder listener(final OnTimeOutListener onTimeOutListener){
             this.onTimeOutListener = onTimeOutListener;
+            boolean isBackground = sharedPreferences.getBoolean(LOGOUT_CHECK, false);
+            if(isBackground){
+                onTimeOutListener.onTimeOut(true);
+                Log.d(TAG, "Fired from the background!");
+            }
             return this;
         }
-
 
         public Builder hours(int hours){
             minute((60 * 60) * hours);
-            Log.d("TimeoutBuilder", "HOURS");
             return this;
         }
 
         public void build(){
             TIMEOUT = milliseconds;
-            TimedDogXWorker.startOneTime(context, onTimeOutListener);
+            TimedDogXWorker.startOneTime(context, this);
+            //getHandler().sendEmptyMessage(BACKGROUND_WHAT);
         }
 
+        @Override
+        public boolean handleMessage(@NonNull Message msg) {
+            if (msg.what == FOREGROUND_WHAT) {
+                onTimeOutListener.onTimeOut(false);
+            }
+            return false;
+        }
     }
 }

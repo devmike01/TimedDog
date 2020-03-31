@@ -13,11 +13,9 @@ public class TimedDog {
     private static TimeDogAppLifecycle timeDogAppLifecycle;
 
     public static void init(Application application){
-         if (timeDogAppLifecycle != null){
-             timeDogAppLifecycle = new TimeDogAppLifecycle();
+         if (timeDogAppLifecycle == null){
+             timeDogAppLifecycle = new TimeDogAppLifecycle(application);
          }
-        Foreground.init(application);
-
         ProcessLifecycleOwner.get().getLifecycle().addObserver(timeDogAppLifecycle);
     }
 }
