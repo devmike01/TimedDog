@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TimedDog</string>
+    <string name="you_are_logged_out_msg">You\'re now logged out</string>
+    <string name="logged_in_msg">Logged In</string>
 </resources>
