@@ -11,7 +11,8 @@ public class TimedDogIdlingResources implements IdlingResource {
 
     private AtomicBoolean isIdleNow = new AtomicBoolean(true);
 
-    private ResourceCallback resourceCallback;
+    private volatile ResourceCallback resourceCallback;
+
 
     @Override
     public String getName() {
