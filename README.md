@@ -55,7 +55,7 @@ allprojects {
 
 ##### Add the library to your build.gradle(app level) file and rebuild your project
 ```groovy
-implementation 'com.github.devmike01:TimedDog:1.0.1'
+implementation 'com.github.devmike01:TimedDog:1.1.0'
 ```
 
 **That's all**

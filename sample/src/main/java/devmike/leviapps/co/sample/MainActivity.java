@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 public class MainActivity extends TimeoutActivity {
 
-    private TimedDogIdlingResources idlingResources;
+    private TimedDogIdlingResources idlingResources = new TimedDogIdlingResources();;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +24,6 @@ public class MainActivity extends TimeoutActivity {
         final TextView resultTv = findViewById(R.id.text);
         resultTv.setText(R.string.logged_in_msg);
 
-        idlingResources = new TimedDogIdlingResources();
         idlingResources.setIdleState(false);
 
         Log.d("MainActivity", "idlingResources == NULL");
@@ -53,11 +52,6 @@ public class MainActivity extends TimeoutActivity {
     @VisibleForTesting
     @NonNull
     public IdlingResource getIdlingResource() {
-        Log.d("MainActivity@1", "getIdlingResource_____MainActivity");
-        if (idlingResources == null) {
-            idlingResources = new TimedDogIdlingResources();
-        }
-
         return idlingResources;
     }
 

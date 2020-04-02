@@ -131,13 +131,11 @@ public class TimedDogXWorker extends Worker{
         }
 
         public Builder minute(int minute){
-            seconds(60 *minute);
-            return this;
+            return seconds(60 *minute);
         }
 
         public Builder seconds(long seconds){
-            milliseconds(seconds * 1000);
-            return this;
+            return  milliseconds(seconds * 1000);
         }
 
         public Builder milliseconds(long milliseconds){
@@ -156,8 +154,7 @@ public class TimedDogXWorker extends Worker{
         }
 
         public Builder hours(int hours){
-            minute((60 * 60) * hours);
-            return this;
+            return  minute((60 * 60) * hours);
         }
 
         public void build(){
