@@ -1,6 +1,5 @@
 ## TimedDog
-An Android library which helps time out an app when a user stopped interacting with it after the
-set time has lapsed. TimedDog was created to solve the issue of an idle app not timing out after a set time. I have come across many solutions on both Github and Stackoverflow but none of them work as expected due to the new constraints on background processes in Android API 26. This library was built on   `WorkManager`, hence it will work on both apps targeting the latest Android SDKs down to Android API 16.
+An Android library for automatically logging out an app when a set time has elapsed. I have come across many solutions on both Github and Stackoverflow but none of them work as expected due to the new constraints on background processes in Android API 26. This library was built on   `WorkManager`, hence it will work on both apps targeting the latest Android SDKs down to Android API 16.
 
 
 ### Sample
