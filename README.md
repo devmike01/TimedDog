@@ -23,9 +23,9 @@ class BaseActivity extends TimeoutActivity{
     //...
 }
 ```
-**Suggestion:** Extend this activity on pages that can only be accessed after login.
+**Suggestion:** Extend `TimeOutActivity` on pages that can only be accessed after a user has successfully logged in to your app.
 
-##### Finally, start `TimedDog` in your main activity's method. Typically, this is usually the splash activity.
+##### Finally, start `TimedDog` in your main activity onCreate's method.
 ```java
 new TimedDogXWorker.Builder(this)
       .seconds(10)
