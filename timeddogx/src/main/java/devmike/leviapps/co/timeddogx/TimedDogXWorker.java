@@ -1,19 +1,14 @@
 package devmike.leviapps.co.timeddogx;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
-import java.lang.ref.WeakReference;
-
 import androidx.annotation.NonNull;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
+import androidx.fragment.app.FragmentActivity;
+import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 import devmike.leviapps.co.timeddogx.utils.TimeDogAppLifecycle;
@@ -30,16 +25,15 @@ public class TimedDogXWorker extends Worker{
 
     public static final String LOGOUT_CHECK ="LOGOUT_CHECK";
 
-    private static final int FOREGROUND_WHAT =1;
+    private static final int WHAT_FOREGROUND =1;
+
+    static final int WHAT_BACKGROUND =-1;
+
+    static final String OUTPUT_FOREGROUND ="devmike.leviapps.co.timeddogx.OUTPUT_FOREGROUND";
 
     public static final String BACKGROUND_TO_FOREGROUND ="_BACKGROUND_TO_FOREGROUND_STORE";
 
     private SharedPreferences sharedPreferences;
-
-    public static long TIMEOUT =1;
-
-    private static Handler handler;
-
 
     public interface OnTimeOutListener{
         void onTimeOut(boolean isBackground);
@@ -52,26 +46,15 @@ public class TimedDogXWorker extends Worker{
     }
 
 
-    private static void startOneTime(Context context, Builder builder){
-        initHandler(builder);
-        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(TimedDogXWorker.class).build();
-        WorkManager.getInstance(context).enqueue(request);
-    }
-
-
-    private static void initHandler(Builder builder){
-        HandlerThread handlerThread = new HandlerThread("TimedDogHandler");
-        handlerThread.start();
-        handler =new Handler(handlerThread.getLooper(), builder);
-    }
-
-
     @NonNull
     @Override
     public Result doWork() {
         long idle;
         touch();
 
+        Data.Builder dataBuilder = new Data.Builder();
+
+        long TIMEOUT = getInputData().getLong(TimedDog.ARG_TIMEOUT, 0);
         while (!isCancelled) {
             Log.d(TAG, "MultiLog USER OUT IMMEDIATELY IN____ ");
             idle = System.currentTimeMillis() - lastUsed;
@@ -79,22 +62,29 @@ public class TimedDogXWorker extends Worker{
 
             if (idle >= TIMEOUT) {
 
-                if (TimeDogAppLifecycle.getTimeDogAppLifecycleEvents().isForeground()) {
+                if (TimeDogAppLifecycle.getTimeDogAppLifecycleEvents()
+                        .isForeground()) {
                     keepInBackground(false);
-                    handler.sendEmptyMessage(FOREGROUND_WHAT);
-                } else {
+                    dataBuilder.putBoolean(OUTPUT_FOREGROUND, true);
+                    //timeoutLiveData.postValue(WHAT_FOREGROUND);
+                    Log.d("inotnot#1", "WHAT_FOREGROUND");
+                }else{
+
+                    Log.d("inotnot#1", "BACKGROUND");
                     keepInBackground(true);
                 }
 
+
                 setCancelled(true);
                 idle = 0;
+
+                return Result.success(dataBuilder.build());
             }
 
         }
 
         return Result.success();
     }
-
 
     private void keepInBackground(boolean isInBackground){
         sharedPreferences.edit().putBoolean(LOGOUT_CHECK, isInBackground).apply();
@@ -114,39 +104,43 @@ public class TimedDogXWorker extends Worker{
     }
 
 
-    public static class Builder implements Handler.Callback {
+        public static class Builder{
 
         private Context context;
 
-        private long milliseconds;
+        private long timeInMilliseconds;
+
+        private static long milliseconds = 1000;
 
         private SharedPreferences sharedPreferences;
 
-        private OnTimeOutListener onTimeOutListener;
-
+        @Deprecated
         public Builder(Context context){
             this.context = context;
             sharedPreferences = context.getSharedPreferences(BACKGROUND_TO_FOREGROUND,
                             Context.MODE_PRIVATE);
+
         }
 
         public Builder minute(int minute){
-            return seconds(60 *minute);
+            this.timeInMilliseconds += (60 * milliseconds) * minute;
+            return this;
         }
 
         public Builder seconds(long seconds){
-            return  milliseconds(seconds * 1000);
+            this.timeInMilliseconds += (seconds * milliseconds);
+            return this;
         }
 
         public Builder milliseconds(long milliseconds){
-            this.milliseconds = milliseconds;
+            this.timeInMilliseconds += milliseconds;
             return this;
         }
 
         public Builder listener(final OnTimeOutListener onTimeOutListener){
-            this.onTimeOutListener = onTimeOutListener;
             boolean isBackground = sharedPreferences.getBoolean(LOGOUT_CHECK, false);
             if(isBackground){
+
                 onTimeOutListener.onTimeOut(true);
                 Log.d(TAG, "Fired from the background!");
             }
@@ -154,21 +148,19 @@ public class TimedDogXWorker extends Worker{
         }
 
         public Builder hours(int hours){
-            return  minute((60 * 60) * hours);
+            this.timeInMilliseconds += ((60* 60) * milliseconds) * hours;
+            return this;
         }
 
-        public void build(){
-            TIMEOUT = milliseconds;
-            TimedDogXWorker.startOneTime(context, this);
-            //getHandler().sendEmptyMessage(BACKGROUND_WHAT);
-        }
-
-        @Override
-        public boolean handleMessage(@NonNull Message msg) {
-            if (msg.what == FOREGROUND_WHAT) {
-                onTimeOutListener.onTimeOut(false);
+        @Deprecated
+        public void build() {
+            if (context instanceof FragmentActivity) {
+                TimedDog
+                        .with(((FragmentActivity)context).getApplication())
+                        .duration(timeInMilliseconds)
+                        .start();
             }
-            return false;
         }
+
     }
 }

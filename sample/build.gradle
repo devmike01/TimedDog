@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "devmike.leviapps.co.timeddog"
         minSdkVersion 16
@@ -21,6 +21,10 @@ android {
     }
 
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -32,8 +36,8 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'androidx.test.espresso:espresso-idling-resource:3.2.0'
-    //implementation project(":timeddogx")
-    implementation 'com.github.devmike01:TimedDog:1.1.0'
+    implementation project(":timeddogx")
+    //implementation 'com.github.devmike01:TimedDog:1.1.0'
     debugImplementation("androidx.test:core:1.2.0")
     testImplementation "org.robolectric:robolectric:4.3.1"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:3.0.2"

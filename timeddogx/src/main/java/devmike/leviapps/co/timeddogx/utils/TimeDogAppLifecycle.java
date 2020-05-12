@@ -16,17 +16,18 @@ public class TimeDogAppLifecycle implements LifecycleObserver {
 
     private static final String TAG ="TimeDogAppLifecycle";
 
-    private Context context;
+    public interface OnTimeDogAppLifecycleListener{
+        void onResume();
+        void onStop();
+    }
 
-    private SharedPreferences timedSharedPreference;
+    private OnTimeDogAppLifecycleListener onTimeDogAppLifecycleListener;
 
     private static TimeDogAppLifecycleEvents timeDogAppLifecycleEvents;
 
-    public TimeDogAppLifecycle(Context context){
-        this.context = context;
-        timedSharedPreference =
-                context.getSharedPreferences(TimedDogXWorker.BACKGROUND_TO_FOREGROUND,
-                        Context.MODE_PRIVATE);
+    public TimeDogAppLifecycle(OnTimeDogAppLifecycleListener onTimeDogAppLifecycleListener){
+
+        this.onTimeDogAppLifecycleListener = onTimeDogAppLifecycleListener;
         timeDogAppLifecycleEvents = new TimeDogAppLifecycleEvents();
     }
 
@@ -44,17 +45,14 @@ public class TimeDogAppLifecycle implements LifecycleObserver {
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onResumeMode(){
-        boolean isLogout = timedSharedPreference.getBoolean(TimedDogXWorker.LOGOUT_CHECK, false);
-        if (isLogout){
-           // TimedDogXWorker.getHandler().get().sendEmptyMessage(FOREGROUND);
-            timedSharedPreference.edit().clear().apply();
-        }
+        onTimeDogAppLifecycleListener.onResume();
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     public void moveToBackground(){
         // appLifecycle.setBackground(true);
         Log.d(TAG, "Moved to background");
+        onTimeDogAppLifecycleListener.onStop();
         timeDogAppLifecycleEvents.setForeground(false);
     }
 
