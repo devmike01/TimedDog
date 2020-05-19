@@ -67,10 +67,7 @@ public class TimedDogXWorker extends Worker{
                     keepInBackground(false);
                     dataBuilder.putBoolean(OUTPUT_FOREGROUND, true);
                     //timeoutLiveData.postValue(WHAT_FOREGROUND);
-                    Log.d("inotnot#1", "WHAT_FOREGROUND");
                 }else{
-
-                    Log.d("inotnot#1", "BACKGROUND");
                     keepInBackground(true);
                 }
 
