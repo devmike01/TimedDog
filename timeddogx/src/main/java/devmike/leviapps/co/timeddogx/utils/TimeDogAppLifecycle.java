@@ -23,24 +23,13 @@ public class TimeDogAppLifecycle implements LifecycleObserver {
 
     private OnTimeDogAppLifecycleListener onTimeDogAppLifecycleListener;
 
-    private static TimeDogAppLifecycleEvents timeDogAppLifecycleEvents;
-
     public TimeDogAppLifecycle(OnTimeDogAppLifecycleListener onTimeDogAppLifecycleListener){
 
         this.onTimeDogAppLifecycleListener = onTimeDogAppLifecycleListener;
-        timeDogAppLifecycleEvents = new TimeDogAppLifecycleEvents();
-    }
-
-
-    public static TimeDogAppLifecycleEvents getTimeDogAppLifecycleEvents() {
-        return timeDogAppLifecycleEvents;
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     public void moveToForeground(){
-        //appLifecycle.setBackground(false);
-
-        timeDogAppLifecycleEvents.setForeground(true);
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -53,7 +42,6 @@ public class TimeDogAppLifecycle implements LifecycleObserver {
         // appLifecycle.setBackground(true);
         Log.d(TAG, "Moved to background");
         onTimeDogAppLifecycleListener.onStop();
-        timeDogAppLifecycleEvents.setForeground(false);
     }
 
 }

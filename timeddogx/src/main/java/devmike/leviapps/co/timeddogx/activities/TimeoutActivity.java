@@ -30,6 +30,4 @@ public abstract class TimeoutActivity extends AppCompatActivity {
         TimedDogXWorker.touch();
     }
 
-
-
 }
