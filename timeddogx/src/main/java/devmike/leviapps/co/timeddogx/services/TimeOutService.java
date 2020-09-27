@@ -2,9 +2,7 @@ package devmike.leviapps.co.timeddogx.services;// Created by Gbenga Oladipupo(De
 
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -14,7 +12,6 @@ import androidx.annotation.Nullable;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class TimeOutService extends Service {
 
@@ -22,7 +19,14 @@ public class TimeOutService extends Service {
 
     private static final String TAG ="TimeOutService";
 
+    private final long TIMEOUT_IN_MINUTES =5;
+
     private ExecutorService mExecutorService;
+
+
+    public synchronized void touch() {
+    }
+
 
     @Nullable
     @Override
@@ -30,21 +34,22 @@ public class TimeOutService extends Service {
         return tBinder;
     }
 
-    private class TimeOutBinder extends Binder implements TimeOutInterface{
+    public class TimeOutBinder extends Binder implements TimeOutBinderImpl{
+
 
         private long lastUsed;
         private boolean isCancelled;
-        private final long TIMEOUT_IN_MINUTES =5;
 
         /**
          * Class for clients to access.  Because we know this service always
          * runs in the same process as its clients, we don't need to deal with
          * IPC.
          */
-        TimeOutService getService(){
+        public TimeOutService getService(){
             return TimeOutService.this;
         }
 
+        // The binder should call @{onStartCounting()} to start counting to the set duration
         @Override
         public void onStartCounting() {
             mExecutorService.execute(() -> {
@@ -58,18 +63,25 @@ public class TimeOutService extends Service {
                     long timeOut =TIMEOUT_IN_MINUTES * (1000 *60);
                     if (idle >= timeOut){
                         //Has timed out!
-                        Log.d(TAG, "Time out!!!");
+                        System.out.println(timeOut +"<-- Time out!!! -> "+ idle);
                         idle =0;
+                        this.isCancelled =true;
                     }
 
                 }
             });
-
         }
 
-        public synchronized void touch() {
+
+        @Override
+        public void onTouch() {
             Log.d(TAG, "MultiLog TOUCHED!! ");
             lastUsed = System.currentTimeMillis();
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return isCancelled;
         }
     }
 

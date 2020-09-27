@@ -42,6 +42,7 @@ dependencies {
     testImplementation "org.robolectric:robolectric:4.3.1"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:3.0.2"
     testImplementation "org.mockito:mockito-core:2.27.0"
+
    // compile project(path: ':timeddogx')
     //implementation 'com.github.devmike01:TimedDog:1.0.1'
 }

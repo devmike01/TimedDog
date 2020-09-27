@@ -52,33 +52,33 @@ public class TimedDogXWorker extends Worker{
         long idle;
         touch();
 
-        Data.Builder dataBuilder = new Data.Builder();
-
-        long TIMEOUT = getInputData().getLong(TimedDog.ARG_TIMEOUT, 0);
-        while (!isCancelled) {
-            Log.d(TAG, "MultiLog USER OUT IMMEDIATELY IN____ ");
-            idle = System.currentTimeMillis() - lastUsed;
-            SystemClock.sleep(1000);
-
-            if (idle >= TIMEOUT) {
-
-                if (TimeDogAppLifecycle.getTimeDogAppLifecycleEvents()
-                        .isForeground()) {
-                    keepInBackground(false);
-                    dataBuilder.putBoolean(OUTPUT_FOREGROUND, true);
-                    //timeoutLiveData.postValue(WHAT_FOREGROUND);
-                }else{
-                    keepInBackground(true);
-                }
-
-
-                setCancelled(true);
-                idle = 0;
-
-                return Result.success(dataBuilder.build());
-            }
-
-        }
+//        Data.Builder dataBuilder = new Data.Builder();
+//
+//        long TIMEOUT = getInputData().getLong(TimedDog.ARG_TIMEOUT, 0);
+//        while (!isCancelled) {
+//            Log.d(TAG, "MultiLog USER OUT IMMEDIATELY IN____ ");
+//            idle = System.currentTimeMillis() - lastUsed;
+//            SystemClock.sleep(1000);
+//
+//            if (idle >= TIMEOUT) {
+//
+//                if (TimeDogAppLifecycle.getTimeDogAppLifecycleEvents()
+//                        .isForeground()) {
+//                    keepInBackground(false);
+//                    dataBuilder.putBoolean(OUTPUT_FOREGROUND, true);
+//                    //timeoutLiveData.postValue(WHAT_FOREGROUND);
+//                }else{
+//                    keepInBackground(true);
+//                }
+//
+//
+//                setCancelled(true);
+//                idle = 0;
+//
+//                return Result.success(dataBuilder.build());
+//            }
+//
+//        }
 
         return Result.success();
     }
