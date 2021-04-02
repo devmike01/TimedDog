@@ -3,13 +3,13 @@ package devmike.leviapps.co.sample;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.test.espresso.IdlingResource;
-import devmike.leviapps.co.timeddogx.TimedDog;
-import devmike.leviapps.co.timeddogx.TimedDogXWorker;
+
 import devmike.leviapps.co.timeddogx.activities.TimeoutActivity;
+import devmike.leviapps.co.timeddogx.services.TimeOutService;
+import devmike.leviapps.co.timeddogx.v2.TimedDog;
 import idlingresources.TimedDogIdlingResources;
 
-import android.app.Instrumentation;
-import android.content.pm.InstrumentationInfo;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -25,25 +25,13 @@ public class MainActivity extends TimeoutActivity {
         final TextView resultTv = findViewById(R.id.text);
         resultTv.setText(R.string.logged_in_msg);
 
+        Intent start = new Intent(this, TimeOutService.class);
+        //startService(start);
+
         idlingResources.setIdleState(false);
 
-        Log.d("MainActivity#1", "idlingResources == NULL");
-
         //This should be moved to the base activity
-        TimedDog.with(this.getApplication()).duration(10000)
-                .start().getTimedResultLiveData().observe(this, isBackground -> {
-                    LogoutActivity.start(this);
-        });
-        /*new TimedDogXWorker.Builder(this)
-                .seconds(10)
-                .listener(new TimedDogXWorker.OnTimeOutListener() {
-                    @Override
-                    public void onTimeOut(boolean isBackground) {
-                        //LogoutActivity.start(App.this);
-                        Log.d("sdds", "HELLLOOOW");
-                        onTimeElapsed();
-                    }
-                }).build();*/
+        TimedDog.init(this);
 
     }
 

@@ -8,10 +8,13 @@ import android.os.IBinder;
 import android.os.SystemClock;
 
 import androidx.test.core.app.ApplicationProvider;
+import androidx.test.rule.ServiceTestRule;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -20,12 +23,15 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowService;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.robolectric.Shadows.shadowOf;
 
 import devmike.leviapps.co.timeddogx.services.TimeOutBinderImpl;
@@ -34,6 +40,14 @@ import devmike.leviapps.co.timeddogx.services.TimeOutService;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = Build.VERSION_CODES.N)
 public class TimeServiceTest {
+
+    static {
+        BuildConfig.IS_TESTING.set(true);
+    }
+
+    @Rule
+    public ServiceTestRule serviceTestRule = new ServiceTestRule();
+
 
     private ServiceController<TimeOutService> serviceServiceController;
     private TimeOutService mTimeOutService;
@@ -47,25 +61,30 @@ public class TimeServiceTest {
     }
 
     @Test
-    public void shouldReturnProperBinder(){
-       final IBinder binder = mTimeOutService.onBind(getIntentService());
-       assertNotNull(binder);
-       assertTrue(TimeOutBinderImpl.class.isAssignableFrom(binder.getClass()));
+    public void testStartedService(){
+        Intent serviceIntent = new Intent(ApplicationProvider.getApplicationContext(), TimeOutService.class);
+        try {
+            serviceTestRule.startService(serviceIntent);
+        }catch (TimeoutException te){
+            te.printStackTrace();
+        }
+
+    }
+
+    @Test
+    public void testExecutorServiceInit(){
+        //assertNotNull(mTimeOutService.getExecutorService());
+    }
+
+    @Test(timeout = 1000)
+    public void testTimeoutCountDown() {
+        assertFalse(mTimeOutService.isCancelled());
+        mTimeOutService.onStartCounting();
+        assertTrue(mTimeOutService.isCancelled());
     }
 
     private Intent getIntentService(){
         return new Intent(ApplicationProvider.getApplicationContext(), TimeOutService.class);
-    }
-
-    @Test
-    public void testTimeout() throws InterruptedException{
-        TimeOutBinderImpl binder = (TimeOutBinderImpl)mTimeOutService.onBind(getIntentService());
-        assertNotNull(binder);
-        assertFalse(binder.isCancelled());
-        binder.onStartCounting();
-        binder.onTouch();
-        Thread.sleep(1000);
-        assertTrue(binder.isCancelled());
     }
 
 

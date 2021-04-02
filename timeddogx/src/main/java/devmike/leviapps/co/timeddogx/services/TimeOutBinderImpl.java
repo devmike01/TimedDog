@@ -3,6 +3,6 @@ package devmike.leviapps.co.timeddogx.services;// Created by Gbenga Oladipupo(De
 
 public interface TimeOutBinderImpl {
     void onStartCounting();
-    void onTouch();
+    //void onTouch();
     boolean isCancelled();
 }

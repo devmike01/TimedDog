@@ -1,13 +1,10 @@
 package devmike.leviapps.co.timeddogx.utils;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
-import devmike.leviapps.co.timeddogx.TimedDogXWorker;
 
 /**
  * Created by Gbenga Oladipupo on 2020-02-15.
@@ -34,6 +31,7 @@ public class TimeDogAppLifecycle implements LifecycleObserver {
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onResumeMode(){
+        Log.d(TAG, "Moved to foreground");
         onTimeDogAppLifecycleListener.onResume();
     }
 

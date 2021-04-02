@@ -4,16 +4,28 @@ package devmike.leviapps.co.timeddogx.services;// Created by Gbenga Oladipupo(De
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class TimeOutService extends Service {
+import devmike.leviapps.co.timeddogx.receivers.TimeOutReceiver;
+import devmike.leviapps.co.timeddogx.utils.TimeDogAppLifecycle;
+
+import static devmike.leviapps.co.timeddogx.BuildConfig.IS_TESTING;
+
+public class TimeOutService extends Service  implements TimeOutBinderImpl{
 
     private final IBinder tBinder = new TimeOutBinder();
 
@@ -21,10 +33,73 @@ public class TimeOutService extends Service {
 
     private final long TIMEOUT_IN_MINUTES =5;
 
-    private ExecutorService mExecutorService;
+    private final int WHAT_THREAD =101;
 
+    public static final String ACTION_THREAD ="devmike.leviapps.co.timeddogx.services.THREAD";
 
-    public synchronized void touch() {
+    private ExecutorServiceContract executorService;
+
+    private static long lastUsed;
+    private boolean isCancelled;
+    private HandlerThread handlerThread;
+    private final CountDownLatch testCountDownLatch = new CountDownLatch(1);
+
+    private Handler.Callback callback;
+
+    // The binder should call @{onStartCounting()} to start counting to the set duration
+    @Override
+    public void onStartCounting(){
+        //testMonitor();
+        executorService.onRun(runnable);
+    }
+
+    private final Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            long idle;
+            onTouch();
+            //Start waiting for the service
+            //testCountDownLatch.countDown();
+            while (!isCancelled){
+                Log.d("TimeOutService", "counting");
+                idle = System.currentTimeMillis() - lastUsed;
+                SystemClock.sleep(1000);
+                long timeOut =TIMEOUT_IN_MINUTES * (1000 *60);
+                if (idle >= 10000){
+                    //Has timed out!
+                    System.out.println(timeOut +"<-- Time out!!! -> "+ idle);
+                    idle =0;
+                    notifyOfTimeOut();
+
+                    TimeOutService.this.isCancelled =true;
+                }
+
+            }
+        }
+    };
+
+    private void notifyOfTimeOut(){
+        handlerThread = new HandlerThread("TimeoutHandler");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper(), callback);
+        handler.sendEmptyMessage(WHAT_THREAD);
+        handlerThread.quit();
+    }
+
+    @VisibleForTesting
+    private void testMonitor(){
+        if (IS_TESTING.get()) {
+            try {
+                testCountDownLatch.await();
+            }catch (InterruptedException i){
+                i.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return isCancelled;
     }
 
 
@@ -34,61 +109,32 @@ public class TimeOutService extends Service {
         return tBinder;
     }
 
-    public class TimeOutBinder extends Binder implements TimeOutBinderImpl{
+    public class TimeOutBinder extends Binder{
 
-
-        private long lastUsed;
-        private boolean isCancelled;
 
         /**
          * Class for clients to access.  Because we know this service always
          * runs in the same process as its clients, we don't need to deal with
          * IPC.
          */
-        public TimeOutService getService(){
+
+        public TimeOutService getService( TimedDogExecutorService executorService, Handler.Callback callback){
+            TimeOutService.this.executorService = executorService;
+            TimeOutService.this.callback = callback;
             return TimeOutService.this;
         }
 
-        // The binder should call @{onStartCounting()} to start counting to the set duration
-        @Override
-        public void onStartCounting() {
-            mExecutorService.execute(() -> {
-                long idle;
-                touch();
+    }
 
-                while (!isCancelled){
-                    idle = System.currentTimeMillis() - lastUsed;
-                    SystemClock.sleep(1000);
-
-                    long timeOut =TIMEOUT_IN_MINUTES * (1000 *60);
-                    if (idle >= timeOut){
-                        //Has timed out!
-                        System.out.println(timeOut +"<-- Time out!!! -> "+ idle);
-                        idle =0;
-                        this.isCancelled =true;
-                    }
-
-                }
-            });
-        }
-
-
-        @Override
-        public void onTouch() {
-            Log.d(TAG, "MultiLog TOUCHED!! ");
-            lastUsed = System.currentTimeMillis();
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return isCancelled;
-        }
+    public static void onTouch() {
+        Log.d(TAG, "MultiLog TOUCHED!! ");
+        lastUsed = System.currentTimeMillis();
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        this.mExecutorService = Executors.newSingleThreadExecutor();
+        Log.i("TimeOutService", "Received start id "  + ": ");
     }
 
     @Override
@@ -105,7 +151,7 @@ public class TimeOutService extends Service {
      */
     @Override
     public void onDestroy() {
-        mExecutorService.shutdown();
+        executorService.shutdown();
         Log.i("TimeOutService", "TimeOutService has been destroyed");
     }
 

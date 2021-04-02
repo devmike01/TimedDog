@@ -5,32 +5,35 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.util.Log;
 
-import androidx.fragment.app.FragmentActivity;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
 import devmike.leviapps.co.timeddogx.services.TimeOutService;
+import devmike.leviapps.co.timeddogx.services.TimedDogExecutorService;
 import devmike.leviapps.co.timeddogx.utils.TimeDogAppLifecycle;
 
-public class TimedDog implements TimeDogAppLifecycle.OnTimeDogAppLifecycleListener  {
+public class TimedDog implements TimeDogAppLifecycle.OnTimeDogAppLifecycleListener, LifecycleObserver {
 
-    private static TimedDog timedDog;
-
-    private Context activity;
-
-    private boolean isBound =false;
-
-    private TimeOutService timeOutService;
+    private final Context context;
 
     public static final String EXTRA_IS_ONBACKGROUND ="devmike.leviapps.co.timeddogx.EXTRA_IS_ONBACKGROUND";
 
+    private static Object timedDog = null;
 
-    TimedDog(Context activity){
-        this.activity = activity;
-        this.timeOutService = new TimeOutService();
-        ProcessLifecycleOwner.get().getLifecycle().addObserver( new TimeDogAppLifecycle(this));
-       // timeOutService.onStartCounting();
+    private boolean isForeground;
+
+    TimedDog(Context context){
+        this.context = context;
+        startService();
+        ProcessLifecycleOwner.get().getLifecycle().addObserver( this);
     }
 
     public static void init(Context activity){
@@ -39,30 +42,51 @@ public class TimedDog implements TimeDogAppLifecycle.OnTimeDogAppLifecycleListen
         }
     }
 
-    @Override
-    public void onResume() {
-        final Intent sIntent = new Intent(activity, TimeOutService.class);
+    private void startService(){
+        final Intent sIntent = new Intent(context, TimeOutService.class);
         sIntent.putExtra(EXTRA_IS_ONBACKGROUND, true);
-        activity.bindService(sIntent, serviceConnection, Context.BIND_IMPORTANT);
+        context.startService(sIntent);
+        context.bindService(sIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
-    public void onStop() {
-        activity.unbindService(serviceConnection);
-        isBound = false;
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    public void onResume() {
+        setForeground(true);
     }
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    @Override
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    public void onStop() {
+        setForeground(false);
+    }
+
+    void setForeground(boolean isForeground){
+        this.isForeground = isForeground;
+    }
+
+    boolean isForeground(){
+        return isForeground;
+    }
+
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             TimeOutService.TimeOutBinder binder = ((TimeOutService.TimeOutBinder)service);
-            timeOutService = binder.getService();
-            isBound = true;
+            TimeOutService timeOutService = binder.getService(TimedDogExecutorService.getInstance(), new Handler.Callback() {
+                @Override
+                public boolean handleMessage(@NonNull Message message) {
+                    //if (get)
+                    return false;
+                }
+            });
+            timeOutService.onStartCounting();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            isBound= false;
+            Log.d("onServiceDisconnected", name +" moved to the background");
         }
     };
 }
