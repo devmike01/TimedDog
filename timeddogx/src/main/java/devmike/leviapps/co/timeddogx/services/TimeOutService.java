@@ -1,4 +1,6 @@
-package devmike.leviapps.co.timeddogx.services;// Created by Gbenga Oladipupo(Devmike01) on 9/12/20.
+package devmike.leviapps.co.timeddogx.services;
+
+// Created by Gbenga Oladipupo(Devmike01) on 9/12/20.
 
 
 import android.app.Service;
@@ -7,21 +9,13 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import devmike.leviapps.co.timeddogx.receivers.TimeOutReceiver;
-import devmike.leviapps.co.timeddogx.utils.TimeDogAppLifecycle;
 
 import static devmike.leviapps.co.timeddogx.BuildConfig.IS_TESTING;
 
@@ -33,7 +27,9 @@ public class TimeOutService extends Service  implements TimeOutBinderImpl{
 
     private final long TIMEOUT_IN_MINUTES =5;
 
-    private final int WHAT_THREAD =101;
+    public static final int BACKGROUND_THREAD = 0;
+
+    public static final int FOREGROUND_THREAD = 1;
 
     public static final String ACTION_THREAD ="devmike.leviapps.co.timeddogx.services.THREAD";
 
@@ -45,6 +41,8 @@ public class TimeOutService extends Service  implements TimeOutBinderImpl{
     private final CountDownLatch testCountDownLatch = new CountDownLatch(1);
 
     private Handler.Callback callback;
+
+    private long timeoutMillis;
 
     // The binder should call @{onStartCounting()} to start counting to the set duration
     @Override
@@ -64,10 +62,10 @@ public class TimeOutService extends Service  implements TimeOutBinderImpl{
                 Log.d("TimeOutService", "counting");
                 idle = System.currentTimeMillis() - lastUsed;
                 SystemClock.sleep(1000);
-                long timeOut =TIMEOUT_IN_MINUTES * (1000 *60);
-                if (idle >= 10000){
+                //long timeOut = timeoutMillis;
+                if (idle >= timeoutMillis){
                     //Has timed out!
-                    System.out.println(timeOut +"<-- Time out!!! -> "+ idle);
+                    System.out.println(timeoutMillis +"<-- Time out!!! -> "+ idle);
                     idle =0;
                     notifyOfTimeOut();
 
@@ -79,11 +77,13 @@ public class TimeOutService extends Service  implements TimeOutBinderImpl{
     };
 
     private void notifyOfTimeOut(){
+        Log.d("notifyOfTimeOut", "notifyOfTimeOut notified");
         handlerThread = new HandlerThread("TimeoutHandler");
         handlerThread.start();
         Handler handler = new Handler(handlerThread.getLooper(), callback);
+        int WHAT_THREAD = 101;
         handler.sendEmptyMessage(WHAT_THREAD);
-        handlerThread.quit();
+       // handlerThread.quit();
     }
 
     @VisibleForTesting
@@ -118,9 +118,10 @@ public class TimeOutService extends Service  implements TimeOutBinderImpl{
          * IPC.
          */
 
-        public TimeOutService getService( TimedDogExecutorService executorService, Handler.Callback callback){
+        public TimeOutService getService( TimedDogExecutorService executorService, long timeoutMillis,  Handler.Callback callback){
             TimeOutService.this.executorService = executorService;
             TimeOutService.this.callback = callback;
+            TimeOutService.this.timeoutMillis =  timeoutMillis;
             return TimeOutService.this;
         }
 

@@ -2,7 +2,9 @@ package devmike.leviapps.co.sample;
 
 import android.app.Application;
 import android.util.Log;
+import android.widget.Toast;
 
+import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
 import devmike.leviapps.co.timeddogx.v2.TimedDog;
 
 /**
@@ -13,7 +15,10 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        TimedDog.init(this);
-
+        //This should be moved to the base activity
+        TimedDog.with(this).run(100000, isForeground -> {
+            Log.d("AppApp", "ON BACKGROUND THREAD? "+isForeground);
+            Toast.makeText(getApplicationContext(), "YOU HAVE BEEN LOGGED OUT", Toast.LENGTH_LONG).show();
+        });
     }
 }

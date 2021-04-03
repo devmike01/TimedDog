@@ -13,7 +13,7 @@ import androidx.test.filters.LargeTest;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class TimedDogXWorkerTest {
+public class TimedDogServiceHelperServiceHelperImplXWorkerTest {
 
 
 

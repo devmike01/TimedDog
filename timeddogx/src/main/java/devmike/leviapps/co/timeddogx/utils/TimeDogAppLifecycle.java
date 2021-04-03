@@ -9,6 +9,7 @@ import androidx.lifecycle.OnLifecycleEvent;
 /**
  * Created by Gbenga Oladipupo on 2020-02-15.
  */
+@Deprecated
 public class TimeDogAppLifecycle implements LifecycleObserver {
 
     private static final String TAG ="TimeDogAppLifecycle";

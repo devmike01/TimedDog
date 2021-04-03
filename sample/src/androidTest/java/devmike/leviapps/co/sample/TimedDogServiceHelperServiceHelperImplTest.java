@@ -1,15 +1,10 @@
 package devmike.leviapps.co.sample;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.util.Log;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.IdlingRegistry;
 import androidx.test.espresso.IdlingResource;
@@ -27,7 +22,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
  */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class TimedDogTest {
+public class TimedDogServiceHelperServiceHelperImplTest {
 
     private IdlingResource mIdlingResource;
 
@@ -42,7 +37,7 @@ public class TimedDogTest {
         activityScenario.onActivity(new ActivityScenario.ActivityAction<MainActivity>() {
             @Override
             public void perform(MainActivity activity) {
-               TimedDogTest.this.mIdlingResource = activity.getIdlingResource();
+               TimedDogServiceHelperServiceHelperImplTest.this.mIdlingResource = activity.getIdlingResource();
                 IdlingRegistry.getInstance().register(mIdlingResource);
 
             }

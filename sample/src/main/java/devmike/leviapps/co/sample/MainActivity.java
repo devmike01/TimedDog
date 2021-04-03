@@ -11,7 +11,6 @@ import idlingresources.TimedDogIdlingResources;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 
 public class MainActivity extends TimeoutActivity {
@@ -30,8 +29,6 @@ public class MainActivity extends TimeoutActivity {
 
         idlingResources.setIdleState(false);
 
-        //This should be moved to the base activity
-        TimedDog.init(this);
 
     }
 
