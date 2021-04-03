@@ -76,13 +76,6 @@ public class TimeServiceTest {
         //assertNotNull(mTimeOutService.getExecutorService());
     }
 
-    @Test(timeout = 1000)
-    public void testTimeoutCountDown() {
-        assertFalse(mTimeOutService.isCancelled());
-        mTimeOutService.onStartCounting();
-        assertTrue(mTimeOutService.isCancelled());
-    }
-
     private Intent getIntentService(){
         return new Intent(ApplicationProvider.getApplicationContext(), TimeOutService.class);
     }
