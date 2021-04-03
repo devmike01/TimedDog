@@ -4,7 +4,6 @@ import android.app.Application;
 import android.util.Log;
 import android.widget.Toast;
 
-import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
 import devmike.leviapps.co.timeddogx.v2.TimedDog;
 
 /**

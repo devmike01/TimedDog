@@ -1,5 +1,6 @@
 ## TimedDog
-An Android library for automatically logging out an app when a set time has elapsed. I have come across many solutions on both Github and Stackoverflow but none of them work as expected due to the new constraints on background processes in Android API 26. This library was built on   `WorkManager`, hence it will work on both apps targeting the latest Android SDKs down to Android API 16.
+An Android library that automatically log out user after a set time has elapsed. I have come across many solutions on both Github and Stackoverflow but none of them work as expected due to the new constraints on background processes in Android API 26. ~~This library was built on   `WorkManager`, hence it will work on both apps targeting the latest Android SDKs down to Android API 16~~. 
+I have stopped using `WorkManager` and migrated to `Bound Service`.
 
 ### Sample
 
@@ -10,11 +11,13 @@ class MyApp extends Application{
     
     @Override
     public void onCreate(){
-        ...
-        TimedDog.init(this);
+        TimedDog.with(this).run((100*60) * 10);
     }
 }
 ```
+
+##### It's worth noting that they're two ways of initializing `TimedDog`. The first way is by calling it direct which will kill the app processes without launching addition activity or fragment.
+##### However, if you want to listen to the time out when the time elapsed, you can always add a callback to Timeddog initialization
 
 ##### Extend `TimeoutActivity` in your base activity or any other activity you wants to monitor. 
 ```java
@@ -23,18 +26,6 @@ class BaseActivity extends TimeoutActivity{
 }
 ```
 **Suggestion:** Extend `TimeOutActivity` on pages that can only be accessed after a user has successfully logged in to your app.
-
-##### Finally, start `TimedDog` in your main activity onCreate's method.
-```java
-new TimedDogXWorker.Builder(this)
-      .seconds(10)
-      .listener(new TimedDogXWorker.OnTimeOutListener() {
-      @Override
-      public void onTimeOut(boolean isForeground) {
-          //Start the LOGIN ACTIVITY here.
-       }
-     }).build();
-```
 
 #### How To Install
 
@@ -50,7 +41,7 @@ allprojects {
 
 ##### Add the library to your build.gradle(app level) file and rebuild your project
 ```groovy
-implementation 'com.github.devmike01:TimedDog:1.1.0'
+implementation 'com.github.ogx09:timeddog:2.0.0-alpha'
 ```
 
 **That's all**
