@@ -71,11 +71,6 @@ public class TimeServiceTest {
 
     }
 
-    @Test
-    public void testExecutorServiceInit(){
-        //assertNotNull(mTimeOutService.getExecutorService());
-    }
-
     private Intent getIntentService(){
         return new Intent(ApplicationProvider.getApplicationContext(), TimeOutService.class);
     }
