@@ -7,7 +7,7 @@ import android.widget.Toast;
 import devmike.leviapps.co.timeddogx.v2.TimedDog;
 
 /**
- * Created by Gbenga Oladipupo on 2020-01-21.
+ * Created by Gbenga Oladipupo on 2020-01-21
  */
 public class App extends Application {
 
