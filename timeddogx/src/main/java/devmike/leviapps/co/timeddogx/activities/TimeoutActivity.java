@@ -13,7 +13,7 @@ import devmike.leviapps.co.timeddogx.services.TimeOutService;
 public abstract class TimeoutActivity extends AppCompatActivity {
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
     }
