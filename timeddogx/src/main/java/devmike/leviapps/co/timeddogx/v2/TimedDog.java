@@ -6,6 +6,8 @@ package devmike.leviapps.co.timeddogx.v2;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 
 import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
 import devmike.leviapps.co.timeddogx.interfaces.TimedDogServiceHelper;
@@ -15,6 +17,7 @@ import devmike.leviapps.co.timeddogx.utils.TimedDogServiceHelperServiceHelperImp
 public class TimedDog{
 
     Context context;
+    Class<FragmentActivity> fragmentActivityClass;
 
     static Object timedDog = null;
 
@@ -33,8 +36,25 @@ public class TimedDog{
         TimedDogServiceHelperServiceHelperImpl.getInstance().run(context, timeInMillis);
     }
 
-    public void run( long timeInMillis, OnTimeOutCallback onTimeOutCallback) {
-        TimedDogServiceHelperServiceHelperImpl.getInstance().run(context, timeInMillis, onTimeOutCallback);
+    public void run( long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<?> activityClass) {
+
+        try{
+            fragmentActivityClass = ((Class<FragmentActivity>)activityClass);
+        }catch (ClassCastException e){
+            e.printStackTrace();
+        }
+        TimedDogServiceHelperServiceHelperImpl.getInstance().run(context, timeInMillis, onTimeOutCallback, fragmentActivityClass);
+    }
+
+
+    public void run( long timeInMillis, Class<?> loginActivityClass) {
+
+        try{
+            fragmentActivityClass = ((Class<FragmentActivity>)loginActivityClass);
+        }catch (ClassCastException e){
+            e.printStackTrace();
+        }
+        TimedDogServiceHelperServiceHelperImpl.getInstance().run(context, timeInMillis, null, fragmentActivityClass);
     }
 
 }

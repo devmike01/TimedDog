@@ -6,12 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
@@ -32,7 +34,7 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
 
     private static Object timedDog = null;
 
-    private OnTimeOutCallback onTimeOutCallback;
+    private Class<FragmentActivity> activityClass;
 
     private boolean isForeground;
 
@@ -40,9 +42,23 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
 
     long timeOutMillis;
 
+    @Nullable OnTimeOutCallback onTimeOutCallback;
+
     static Object timedDogServiceHelperServiceHelper;
 
 
+    private TimedDogServiceHelperServiceHelperImpl(Context context, long timeOutMillis, @Nullable Class<FragmentActivity> activityClass,
+                                                   @Nullable OnTimeOutCallback onTimeOutCallback){
+        this.context = context;
+        this.timeOutMillis = timeOutMillis;
+        this.activityClass = activityClass;
+        this.onTimeOutCallback = onTimeOutCallback;
+        this.timedDogPreferences = new TimedDogPreferencesImpl(context);
+        startService();
+        ProcessLifecycleOwner.get().getLifecycle().addObserver( this);
+    }
+
+    @Deprecated
     private TimedDogServiceHelperServiceHelperImpl(Context context, long timeOutMillis, @Nullable OnTimeOutCallback onTimeOutCallback){
         this.context = context;
         this.timeOutMillis = timeOutMillis;
@@ -77,7 +93,7 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onResume() {
         if(timedDogPreferences.getWhatThread() == TimeOutService.BACKGROUND_THREAD){
-            onTimeOutCallback.onTimeOut(false);
+            logout(false);
         }
 
         timedDogPreferences.setWhatThread(TimeOutService.FOREGROUND_THREAD);
@@ -99,6 +115,21 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
         return isForeground;
     }
 
+    private void logout(boolean isForeground){
+        if(onTimeOutCallback != null) {
+            Handler handler = new Handler();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    onTimeOutCallback.onTimeOut(isForeground);
+                }
+            });
+        }
+        Intent startIntent = new Intent(context, activityClass);
+        startIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(startIntent);
+    }
+
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -108,9 +139,9 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
                 @Override
                 public boolean handleMessage(@NonNull Message message) {
                     Log.d("TimedDog", "App was killed by TimedDog = "+onTimeOutCallback);
-                    if (null != onTimeOutCallback){
+                    if (null != activityClass){
                         if(isForeground()) {
-                            onTimeOutCallback.onTimeOut(true);
+                            logout(true);
                         }else{
                             timedDogPreferences.setWhatThread(TimeOutService.BACKGROUND_THREAD);
                         }
@@ -135,15 +166,15 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
 
     @Override
     public void run(@NonNull Context context, long timeInMillis) {
-        init(context, timeInMillis, null);
+        init(context, timeInMillis, null, null);
     }
 
     @Override
-    public void run(@NonNull Context context, long timeInMillis, OnTimeOutCallback onTimeOutCallback) {
-        init(context, timeInMillis, onTimeOutCallback);
+    public void run(@NonNull Context context, long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<FragmentActivity> activityClass) {
+        init(context, timeInMillis, onTimeOutCallback, activityClass);
     }
 
-    void init(@NonNull Context context, long timeInMillis, OnTimeOutCallback onTimeOutCallback){
-        new TimedDogServiceHelperServiceHelperImpl(context, timeInMillis, onTimeOutCallback);
+    void init(@NonNull Context context, long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<FragmentActivity> activityClass){
+        new TimedDogServiceHelperServiceHelperImpl(context, timeInMillis, activityClass, onTimeOutCallback);
     }
 }

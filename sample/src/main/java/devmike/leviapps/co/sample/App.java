@@ -15,10 +15,5 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         //This should be moved to the base activity
-        TimedDog.with(this).run((100*60) * 10, isForeground -> {
-            //11: 39
-            Log.d("AppApp", "ON BACKGROUND THREAD? "+isForeground);
-            Toast.makeText(getApplicationContext(), "YOU HAVE BEEN LOGGED OUT", Toast.LENGTH_LONG).show();
-        });
     }
 }

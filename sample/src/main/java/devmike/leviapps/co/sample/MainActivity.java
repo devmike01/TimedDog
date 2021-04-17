@@ -5,6 +5,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.test.espresso.IdlingResource;
 
 import devmike.leviapps.co.timeddogx.activities.TimeoutActivity;
+import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
 import devmike.leviapps.co.timeddogx.services.TimeOutService;
 import devmike.leviapps.co.timeddogx.v2.TimedDog;
 import idlingresources.TimedDogIdlingResources;
@@ -12,10 +13,12 @@ import idlingresources.TimedDogIdlingResources;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends TimeoutActivity {
 
     private TimedDogIdlingResources idlingResources = new TimedDogIdlingResources();;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -24,12 +27,11 @@ public class MainActivity extends TimeoutActivity {
         final TextView resultTv = findViewById(R.id.text);
         resultTv.setText(R.string.logged_in_msg);
 
-        Intent start = new Intent(this, TimeOutService.class);
-        //startService(start);
+        TimedDog.with(this).run(1000 * 10, isForeground -> {
+            Toast.makeText(this, "Logged out", Toast.LENGTH_LONG).show();
+        }, LogoutActivity.class);
 
         idlingResources.setIdleState(false);
-
-
     }
 
 
@@ -42,12 +44,6 @@ public class MainActivity extends TimeoutActivity {
     @NonNull
     public IdlingResource getIdlingResource() {
         return idlingResources;
-    }
-
-
-    @Override
-    protected void onTimeElapsed() {
-        LogoutActivity.start(this);
     }
 
 
