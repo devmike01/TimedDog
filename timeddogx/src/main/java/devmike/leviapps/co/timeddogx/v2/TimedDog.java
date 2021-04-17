@@ -17,44 +17,40 @@ import devmike.leviapps.co.timeddogx.utils.TimedDogServiceHelperServiceHelperImp
 public class TimedDog{
 
     Context context;
-    Class<FragmentActivity> fragmentActivityClass;
+    //Class<FragmentActivity> fragmentActivityClass;
 
     static Object timedDog = null;
 
+    static  Class<FragmentActivity> fragmentActivityClass;
+
+    private TimedDogServiceHelperServiceHelperImpl timedDogServiceHelperServiceHelper;
+
     TimedDog(Context context){
         this.context = context;
+        timedDogServiceHelperServiceHelper = TimedDogServiceHelperServiceHelperImpl.with(context);
     }
 
     public static TimedDog with(Context context){
+
         if (timedDog == null){
+
             timedDog = new TimedDog(context);
         }
         return ((TimedDog)timedDog);
     }
 
-    public void run(long timeInMillis) {
-        TimedDogServiceHelperServiceHelperImpl.getInstance().run(context, timeInMillis);
-    }
 
-    public void run( long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<?> activityClass) {
+
+    public void monitor( long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<?> activityClass) {
 
         try{
             fragmentActivityClass = ((Class<FragmentActivity>)activityClass);
         }catch (ClassCastException e){
             e.printStackTrace();
         }
-        TimedDogServiceHelperServiceHelperImpl.getInstance().run(context, timeInMillis, onTimeOutCallback, fragmentActivityClass);
+        timedDogServiceHelperServiceHelper.monitor(timeInMillis, onTimeOutCallback, fragmentActivityClass);
     }
 
 
-    public void run( long timeInMillis, Class<?> loginActivityClass) {
-
-        try{
-            fragmentActivityClass = ((Class<FragmentActivity>)loginActivityClass);
-        }catch (ClassCastException e){
-            e.printStackTrace();
-        }
-        TimedDogServiceHelperServiceHelperImpl.getInstance().run(context, timeInMillis, null, fragmentActivityClass);
-    }
 
 }

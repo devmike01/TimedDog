@@ -46,47 +46,42 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
 
     static Object timedDogServiceHelperServiceHelper;
 
+    Intent sIntent;
 
-    private TimedDogServiceHelperServiceHelperImpl(Context context, long timeOutMillis, @Nullable Class<FragmentActivity> activityClass,
-                                                   @Nullable OnTimeOutCallback onTimeOutCallback){
-        this.context = context;
+
+    public void set(long timeOutMillis,
+                    @Nullable OnTimeOutCallback onTimeOutCallback,
+                    Class<FragmentActivity> activityClass){
         this.timeOutMillis = timeOutMillis;
         this.activityClass = activityClass;
         this.onTimeOutCallback = onTimeOutCallback;
         this.timedDogPreferences = new TimedDogPreferencesImpl(context);
-        startService();
+        startService(context);
         ProcessLifecycleOwner.get().getLifecycle().addObserver( this);
     }
 
-    @Deprecated
-    private TimedDogServiceHelperServiceHelperImpl(Context context, long timeOutMillis, @Nullable OnTimeOutCallback onTimeOutCallback){
+
+    private TimedDogServiceHelperServiceHelperImpl(Context context){
         this.context = context;
-        this.timeOutMillis = timeOutMillis;
-        this.onTimeOutCallback = onTimeOutCallback;
-        this.timedDogPreferences = new TimedDogPreferencesImpl(context);
-        startService();
-        ProcessLifecycleOwner.get().getLifecycle().addObserver( this);
     }
 
-
-    private TimedDogServiceHelperServiceHelperImpl(){
-
-    }
-
-    public static TimedDogServiceHelperServiceHelperImpl  getInstance(){
+    public static TimedDogServiceHelperServiceHelperImpl with(Context context){
         if (timedDogServiceHelperServiceHelper == null){
-            timedDogServiceHelperServiceHelper = new TimedDogServiceHelperServiceHelperImpl();
+            timedDogServiceHelperServiceHelper = new TimedDogServiceHelperServiceHelperImpl(context);
         }
         return ((TimedDogServiceHelperServiceHelperImpl)timedDogServiceHelperServiceHelper);
     }
 
+    public void start(){
+        Log.d("TimedDogServiceHel", "contetx "+ this.context);
+        sIntent = new Intent(context, TimeOutService.class);
+        context.bindService(sIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
 
-    private void startService(){
-        final Intent sIntent = new Intent(context, TimeOutService.class);
+    private void startService(Context context){
+        sIntent = new Intent(context, TimeOutService.class);
         sIntent.putExtra(EXTRA_IS_ONBACKGROUND, true);
         context.startService(sIntent);
-        context.bindService(sIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
     }
 
     @Override
@@ -163,18 +158,8 @@ public class TimedDogServiceHelperServiceHelperImpl implements OnTimeDogAppLifec
     };
 
 
-
     @Override
-    public void run(@NonNull Context context, long timeInMillis) {
-        init(context, timeInMillis, null, null);
-    }
-
-    @Override
-    public void run(@NonNull Context context, long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<FragmentActivity> activityClass) {
-        init(context, timeInMillis, onTimeOutCallback, activityClass);
-    }
-
-    void init(@NonNull Context context, long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<FragmentActivity> activityClass){
-        new TimedDogServiceHelperServiceHelperImpl(context, timeInMillis, activityClass, onTimeOutCallback);
+    public void monitor(long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<FragmentActivity> activityClass) {
+        new TimedDogServiceHelperServiceHelperImpl(context).set(timeInMillis, onTimeOutCallback, activityClass);
     }
 }

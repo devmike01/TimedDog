@@ -26,8 +26,7 @@ public class MainActivity extends TimeoutActivity {
         setContentView(R.layout.activity_main);
         final TextView resultTv = findViewById(R.id.text);
         resultTv.setText(R.string.logged_in_msg);
-
-
+        TimedDog.with(this).start(this);
         idlingResources.setIdleState(false);
     }
 

@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 import android.widget.Toast;
 
+import devmike.leviapps.co.timeddogx.utils.TimedDogServiceHelperServiceHelperImpl;
 import devmike.leviapps.co.timeddogx.v2.TimedDog;
 
 /**
@@ -15,9 +16,9 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        TimedDog.with(this).run(1000 * 10, isForeground -> {
+        //This should be moved to the base activity
+        TimedDog.with(this).run( 1000 * 10, isForeground -> {
             Toast.makeText(this, "Logged out", Toast.LENGTH_LONG).show();
         }, LogoutActivity.class);
-        //This should be moved to the base activity
     }
 }

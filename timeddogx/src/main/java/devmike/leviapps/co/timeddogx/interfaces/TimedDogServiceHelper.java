@@ -10,7 +10,5 @@ import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
 
 public interface TimedDogServiceHelper {
 
-    void run(@NonNull Context context, long timeInMillis);
-
-    void run(@NonNull Context context, long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<FragmentActivity> activityClass);
+    void monitor(long timeInMillis, OnTimeOutCallback onTimeOutCallback, Class<FragmentActivity> activityClass);
 }
