@@ -27,9 +27,6 @@ public class MainActivity extends TimeoutActivity {
         final TextView resultTv = findViewById(R.id.text);
         resultTv.setText(R.string.logged_in_msg);
 
-        TimedDog.with(this).run(1000 * 10, isForeground -> {
-            Toast.makeText(this, "Logged out", Toast.LENGTH_LONG).show();
-        }, LogoutActivity.class);
 
         idlingResources.setIdleState(false);
     }

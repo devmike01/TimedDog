@@ -14,6 +14,10 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        TimedDog.with(this).run(1000 * 10, isForeground -> {
+            Toast.makeText(this, "Logged out", Toast.LENGTH_LONG).show();
+        }, LogoutActivity.class);
         //This should be moved to the base activity
     }
 }
