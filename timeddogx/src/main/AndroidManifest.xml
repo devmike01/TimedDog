@@ -3,6 +3,6 @@
 
     <application>
         <service android:name=".services.TimeOutService" android:exported="false"/>
-        <receiver android:name=".interfaces.TimeOutReceiver" android:exported="false"/>
+        <receiver android:name=".receivers.TimeOutReceiver" android:exported="false"/>
     </application>
 </manifest>

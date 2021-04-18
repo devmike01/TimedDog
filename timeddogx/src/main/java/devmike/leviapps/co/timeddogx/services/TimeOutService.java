@@ -16,10 +16,12 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.util.concurrent.CountDownLatch;
 
-import devmike.leviapps.co.timeddogx.interfaces.TimeOutReceiver;
+import devmike.leviapps.co.timeddogx.receivers.TimeOutReceiver;
 import devmike.leviapps.co.timeddogx.utils.TimedDogPreferencesImpl;
 
 import static devmike.leviapps.co.timeddogx.BuildConfig.IS_TESTING;
@@ -34,28 +36,36 @@ public class TimeOutService extends Service{
     private final CountDownLatch testCountDownLatch = new CountDownLatch(1);
 
     private Handler.Callback callback;
-
+    MutableLiveData<Boolean> signoutLiveData;
     Messenger mMessenger;
 
     public static final int MSG_BEGIN_COUNT = 1;
 
     public static final int MSG_CURRENT_THREAD = 100;
+    private IncomingHandler incomingHandler;
 
     /**
      * Handler of incoming messages from clients.
      */
-    static class IncomingHandler extends Handler implements TimeOutBinderImpl{
+    public class IncomingHandler extends Handler implements TimeOutBinderImpl{
         private final Context applicationContext;
         private boolean isCancelled;
         final ExecutorServiceContract executorService;
         final TimedDogPreferencesImpl timedDogPreferences;
         boolean isRunning;
         boolean isBackground;
+        private MutableLiveData<Boolean> signoutLiveData;
 
-        protected IncomingHandler(Context context,ExecutorServiceContract executorService, TimedDogPreferencesImpl timedDogPreferences) {
+        public TimeOutService getTimeOutService(){
+            return TimeOutService.this;
+        }
+
+        protected IncomingHandler(Context context,ExecutorServiceContract executorService,
+                                  TimedDogPreferencesImpl timedDogPreferences) {
             super(Looper.myLooper());
             this.executorService = executorService;
             this.timedDogPreferences = timedDogPreferences;
+            this.signoutLiveData = new MutableLiveData<>();
             applicationContext = context.getApplicationContext();
         }
 
@@ -73,6 +83,10 @@ public class TimeOutService extends Service{
             }else {
                 super.handleMessage(msg);
             }
+        }
+
+        public LiveData<Boolean> getSignOutLiveData(){
+            return signoutLiveData;
         }
 
         @Override
@@ -106,30 +120,27 @@ public class TimeOutService extends Service{
 
         }
 
-
-        protected static void notifyOfTimeOut(Context context, String logoutActivityName){
-
-            final TimedDogPreferencesImpl timedDogPreferences = new TimedDogPreferencesImpl(context);
-            Log.d("notifyOfTimeOut", "notifyOfTimeOut notified "+logoutActivityName);
-            Intent broadcastIntent = new Intent(context, TimeOutReceiver.class);
-            broadcastIntent.setAction(BROADCAST_TIMEOUT);
-            if (logoutActivityName != null) {
-                broadcastIntent.putExtra(TimedDog.EXTRA_LOGOUT_ACTIVITY, logoutActivityName);
-                context.sendBroadcast(broadcastIntent);
-            }else{
-                timedDogPreferences.setWhatThread(false);
-                Log.d("TimedDog", "App was killed by TimedDog");
-                System.exit(419);
-            }
-        }
-
         @Override
         public boolean isCancelled() {
             return false;
         }
 
     }
+    protected static void notifyOfTimeOut(Context context, String logoutActivityName){
 
+        final TimedDogPreferencesImpl timedDogPreferences = new TimedDogPreferencesImpl(context);
+        Log.d("notifyOfTimeOut", "notifyOfTimeOut notified "+logoutActivityName);
+        Intent broadcastIntent = new Intent(context, TimeOutReceiver.class);
+        broadcastIntent.setAction(BROADCAST_TIMEOUT);
+        if (logoutActivityName != null) {
+            broadcastIntent.putExtra(TimedDog.EXTRA_LOGOUT_ACTIVITY, logoutActivityName);
+            context.sendBroadcast(broadcastIntent);
+        }else{
+            timedDogPreferences.setWhatThread(false);
+            Log.d("TimedDog", "App was killed by TimedDog");
+            System.exit(419);
+        }
+    }
 
 
     @VisibleForTesting
@@ -146,9 +157,10 @@ public class TimeOutService extends Service{
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        incomingHandler = new IncomingHandler(this,
+                TimedDogExecutorService.getInstance(), new TimedDogPreferencesImpl(getApplicationContext()));
         final String activityName = intent.getStringExtra(TimedDog.EXTRA_LOGOUT_ACTIVITY);
-        mMessenger = new Messenger(new IncomingHandler(this,
-                TimedDogExecutorService.getInstance(), new TimedDogPreferencesImpl(getApplicationContext())));
+        mMessenger = new Messenger(incomingHandler);
         return mMessenger.getBinder();
     }
 

@@ -10,11 +10,14 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
@@ -22,6 +25,7 @@ import devmike.leviapps.co.timeddogx.interfaces.OnTimeDogAppLifecycleListener;
 import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
 import devmike.leviapps.co.timeddogx.interfaces.TimedDogPreferences;
 import devmike.leviapps.co.timeddogx.interfaces.TimedDogServiceHelper;
+import devmike.leviapps.co.timeddogx.receivers.TimeOutReceiver;
 import devmike.leviapps.co.timeddogx.utils.TimedDogPreferencesImpl;
 
 public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserver, TimedDogServiceHelper {
@@ -74,12 +78,14 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
         }
     }
 
+
     @Override
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onResume() {
         if (activityClass !=null){
             if( timedDogPreferences.isBackground()){
-                TimeOutService.IncomingHandler.notifyOfTimeOut(context, activityClass.getName());
+                TimeOutService.notifyOfTimeOut(context,
+                        activityClass.getName());
             }
             beginCount();
             setIsBackgroundThread(false);
@@ -126,7 +132,7 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
             mService = new Messenger(service);
             isBound = true;
             beginCount();
-            Log.d("TimedDog", "onServiceConnected by TimedDog");
+            Log.d("TimedDog", "onServiceConnected by TimedDog = "+name);
         }
 
         @Override
@@ -146,7 +152,7 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
 
 
     @Override
-    public void monitor(long timeInMillis, Class<?> activityClass) {
+    public TimedDog monitor(long timeInMillis, Class<?> activityClass) {
         Class<FragmentActivity> mClass = null;
         try{
             mClass = (Class<FragmentActivity>) activityClass;
@@ -154,10 +160,16 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
             castException.printStackTrace();
         }
         set(timeInMillis, mClass);
+        return this;
+    }
+
+    public void setTimeOutListener(TimeOutReceiver.OnTimeOutReceiverCallback mOnTimeOutReceiverCallback){
+        TimeOutReceiver.setOnTimeOutReceiverCallback(mOnTimeOutReceiverCallback);
     }
 
     @Override
-    public void monitor(long timeInMillis) {
+    public TimedDog monitor(long timeInMillis) {
         monitor(timeInMillis, null);
+        return this;
     }
 }

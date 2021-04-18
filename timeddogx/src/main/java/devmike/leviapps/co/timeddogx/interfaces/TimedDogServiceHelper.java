@@ -7,9 +7,10 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
+import devmike.leviapps.co.timeddogx.services.TimedDog;
 
 public interface TimedDogServiceHelper {
 
-    void monitor(long timeInMillis, Class<?> activityClass);
-    void monitor(long timeInMillis);
+    TimedDog monitor(long timeInMillis, Class<?> activityClass);
+    TimedDog monitor(long timeInMillis);
 }

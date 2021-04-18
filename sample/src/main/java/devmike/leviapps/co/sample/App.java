@@ -1,7 +1,9 @@
 package devmike.leviapps.co.sample;
 
 import android.app.Application;
+import android.widget.Toast;
 
+import devmike.leviapps.co.timeddogx.receivers.TimeOutReceiver;
 import devmike.leviapps.co.timeddogx.services.TimedDog;
 
 
@@ -14,6 +16,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        TimedDog.with(this).monitor((10000*6) *10, LogoutActivity.class);
+        TimedDog.with(this).monitor((1000*6), LogoutActivity.class).setTimeOutListener(() -> {
+            Toast.makeText(this, "LOGGGOEDU", Toast.LENGTH_LONG).show();
+        });
     }
 }
