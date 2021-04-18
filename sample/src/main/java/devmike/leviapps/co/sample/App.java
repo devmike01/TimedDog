@@ -14,6 +14,6 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        TimedDog.with(this).monitor(5000);
+        TimedDog.with(this).monitor(5000, LogoutActivity.class);
     }
 }

@@ -77,15 +77,13 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
     @Override
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onResume() {
-        if (timedDogPreferences.isBackground()){
-            if(activityClass ==null){
-                TimeOutService.IncomingHandler.notifyOfTimeOut(context, null);
-            }else{
+        if (activityClass !=null){
+            if( timedDogPreferences.isBackground()){
                 TimeOutService.IncomingHandler.notifyOfTimeOut(context, activityClass.getName());
             }
+            beginCount();
+            setIsBackgroundThread(false);
         }
-        setIsBackgroundThread(false);
-        beginCount();
     }
 
     @Override

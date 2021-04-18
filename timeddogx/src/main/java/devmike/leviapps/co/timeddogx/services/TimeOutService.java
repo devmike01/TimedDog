@@ -108,6 +108,8 @@ public class TimeOutService extends Service{
 
 
         protected static void notifyOfTimeOut(Context context, String logoutActivityName){
+
+            final TimedDogPreferencesImpl timedDogPreferences = new TimedDogPreferencesImpl(context);
             Log.d("notifyOfTimeOut", "notifyOfTimeOut notified "+logoutActivityName);
             Intent broadcastIntent = new Intent(context, TimeOutReceiver.class);
             broadcastIntent.setAction(BROADCAST_TIMEOUT);
@@ -115,6 +117,7 @@ public class TimeOutService extends Service{
                 broadcastIntent.putExtra(TimedDog.EXTRA_LOGOUT_ACTIVITY, logoutActivityName);
                 context.sendBroadcast(broadcastIntent);
             }else{
+                timedDogPreferences.setWhatThread(false);
                 Log.d("TimedDog", "App was killed by TimedDog");
                 System.exit(419);
             }
