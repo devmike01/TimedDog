@@ -2,7 +2,7 @@ package devmike.leviapps.co.timeddogx.services;// Created by Gbenga Oladipupo(De
 
 
 public interface TimeOutBinderImpl {
-    void onStartCounting();
+    Runnable onStartCounting(long timeoutMillis, String logoutClassName);
     //void onTouch();
     boolean isCancelled();
 }

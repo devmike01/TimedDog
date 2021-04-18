@@ -22,7 +22,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
  */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class TimedDogServiceHelperServiceHelperImplTest {
+public class TimedDogTest {
 
     private IdlingResource mIdlingResource;
 
@@ -37,7 +37,7 @@ public class TimedDogServiceHelperServiceHelperImplTest {
         activityScenario.onActivity(new ActivityScenario.ActivityAction<MainActivity>() {
             @Override
             public void perform(MainActivity activity) {
-               TimedDogServiceHelperServiceHelperImplTest.this.mIdlingResource = activity.getIdlingResource();
+               TimedDogTest.this.mIdlingResource = activity.getIdlingResource();
                 IdlingRegistry.getInstance().register(mIdlingResource);
 
             }

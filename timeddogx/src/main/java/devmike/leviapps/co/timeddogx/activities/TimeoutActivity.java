@@ -24,4 +24,8 @@ public abstract class TimeoutActivity extends AppCompatActivity {
         TimeOutService.onTouch();
     }
 
+    protected synchronized void touch(){
+        TimeOutService.onTouch();
+    }
+
 }

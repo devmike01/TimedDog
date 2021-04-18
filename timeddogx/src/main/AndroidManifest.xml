@@ -2,6 +2,7 @@
     package="devmike.leviapps.co.timeddogx" >
 
     <application>
-        <service android:name=".services.TimeOutService"/>
+        <service android:name=".services.TimeOutService" android:exported="false"/>
+        <receiver android:name=".interfaces.TimeOutReceiver" android:exported="false"/>
     </application>
 </manifest>

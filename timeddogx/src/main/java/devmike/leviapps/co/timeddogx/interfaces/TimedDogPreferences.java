@@ -2,6 +2,6 @@ package devmike.leviapps.co.timeddogx.interfaces;// Created by Gbenga Oladipupo(
 
 
 public interface TimedDogPreferences {
-    int getWhatThread();
-    void setWhatThread(int whatThread);
+    boolean isBackground();
+    void setWhatThread(boolean isBackground);
 }
