@@ -16,7 +16,6 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.util.concurrent.CountDownLatch;
@@ -29,25 +28,18 @@ import static devmike.leviapps.co.timeddogx.BuildConfig.IS_TESTING;
 public class TimeOutService extends Service{
 
     private static final String TAG ="TimeOutService";
-
     public static final String BROADCAST_TIMEOUT ="devmike.leviapps.co.timeddogx.services.BROADCAST_TIMEOUT";
-
     private static long lastUsed;
     private final CountDownLatch testCountDownLatch = new CountDownLatch(1);
-
-    private Handler.Callback callback;
-    MutableLiveData<Boolean> signoutLiveData;
     Messenger mMessenger;
-
     public static final int MSG_BEGIN_COUNT = 1;
-
+    public static final int MSG_SHUTDOWN_COUNTER = 10;
     public static final int MSG_CURRENT_THREAD = 100;
-    private IncomingHandler incomingHandler;
 
     /**
      * Handler of incoming messages from clients.
      */
-    public class IncomingHandler extends Handler implements TimeOutBinderImpl{
+    private static class IncomingHandler extends Handler implements TimeOutBinderImpl{
         private final Context applicationContext;
         private boolean isCancelled;
         final ExecutorServiceContract executorService;
@@ -55,10 +47,6 @@ public class TimeOutService extends Service{
         boolean isRunning;
         boolean isBackground;
         private MutableLiveData<Boolean> signoutLiveData;
-
-        public TimeOutService getTimeOutService(){
-            return TimeOutService.this;
-        }
 
         protected IncomingHandler(Context context,ExecutorServiceContract executorService,
                                   TimedDogPreferencesImpl timedDogPreferences) {
@@ -71,28 +59,28 @@ public class TimeOutService extends Service{
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d("TimedDog@!", "hello---k--!");
             if (msg.what == MSG_BEGIN_COUNT) {
                 BeginCountObject beginCountObject = (BeginCountObject) msg.obj;
-                //long timeoutMillis = Long.parseLong(msg.obj.toString()) * (1000);
-                isCancelled = false;
+                /*Only  start counting when we don't have any pending event. Otherwise stop.
+                This is to prevent the counter from restarting when the app resumes from background
+                */
+                isCancelled = timedDogPreferences.isBackground();
+                //Creating another thread for counter
                 executorService.onRun(onStartCounting(beginCountObject.getTimeOutInMillis(),
                         beginCountObject.getLogoutActivityClassName()));
             }else if (msg.what == MSG_CURRENT_THREAD){
                 this.isBackground = ((boolean)msg.obj);
+            }else if(msg.what == MSG_SHUTDOWN_COUNTER){
+                isCancelled =true;
+                Log.d("TimedDog@!", "Shutting down service...");
             }else {
                 super.handleMessage(msg);
             }
         }
 
-        public LiveData<Boolean> getSignOutLiveData(){
-            return signoutLiveData;
-        }
-
         @Override
         public Runnable onStartCounting(long timeoutMillis, String logoutActivityName){
             return () -> {
-                //if(isRunning)return;
                 long idle;
                 onTouch();
                 isRunning = true;
@@ -157,7 +145,7 @@ public class TimeOutService extends Service{
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        incomingHandler = new IncomingHandler(this,
+        IncomingHandler incomingHandler = new IncomingHandler(this,
                 TimedDogExecutorService.getInstance(), new TimedDogPreferencesImpl(getApplicationContext()));
         final String activityName = intent.getStringExtra(TimedDog.EXTRA_LOGOUT_ACTIVITY);
         mMessenger = new Messenger(incomingHandler);
@@ -170,7 +158,7 @@ public class TimeOutService extends Service{
         return super.onUnbind(intent);
     }
 
-    public static void onTouch() {
+    public static synchronized void onTouch() {
         Log.d(TAG, "MultiLog TOUCHED!! ");
         lastUsed = System.currentTimeMillis();
     }
@@ -196,7 +184,7 @@ public class TimeOutService extends Service{
     @Override
     public void onDestroy() {
         //executorService.shutdown();
-        Log.i("TimeOutService", "TimeOutService has been destroyed");
+        Log.i("TimeOutService#", "TimeOutService has been destroyed");
     }
 
 }

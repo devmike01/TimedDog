@@ -10,19 +10,14 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
 import devmike.leviapps.co.timeddogx.interfaces.OnTimeDogAppLifecycleListener;
-import devmike.leviapps.co.timeddogx.interfaces.OnTimeOutCallback;
 import devmike.leviapps.co.timeddogx.interfaces.TimedDogPreferences;
 import devmike.leviapps.co.timeddogx.interfaces.TimedDogServiceHelper;
 import devmike.leviapps.co.timeddogx.receivers.TimeOutReceiver;
@@ -40,8 +35,6 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
 
     long timeOutMillis;
 
-    @Nullable OnTimeOutCallback onTimeOutCallback;
-
     static Object timedDogServiceHelperServiceHelper;
     private boolean isBound;
     Messenger mService = null;
@@ -52,7 +45,6 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
                     Class<FragmentActivity> activityClass){
         this.timeOutMillis = timeOutMillis;
         this.activityClass = activityClass;
-        //this.onTimeOutCallback = onTimeOutCallback;
         this.timedDogPreferences = new TimedDogPreferencesImpl(context);
         ProcessLifecycleOwner.get().getLifecycle().addObserver( this);
     }
@@ -63,11 +55,29 @@ public class TimedDog implements OnTimeDogAppLifecycleListener, LifecycleObserve
         bindService();
     }
 
+
+
     public static synchronized TimedDog with(Context context){
         if (timedDogServiceHelperServiceHelper == null){
             timedDogServiceHelperServiceHelper = new TimedDog(context);
         }
         return ((TimedDog)timedDogServiceHelperServiceHelper);
+    }
+
+
+    public void signOut(TimeOutReceiver.OnTimeOutReceiverCallback mOnTimeOutReceiverCallback){
+        if (isBound){
+            if(mOnTimeOutReceiverCallback != null) {
+                Log.d("TimedDogServiceHel", "Binding service "+mOnTimeOutReceiverCallback);
+                mOnTimeOutReceiverCallback.onTimeOutReceiver();
+            }
+            Message msg = Message.obtain(null, TimeOutService.MSG_SHUTDOWN_COUNTER);
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void bindService(){
