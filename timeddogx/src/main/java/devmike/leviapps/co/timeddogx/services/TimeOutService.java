@@ -64,7 +64,7 @@ public class TimeOutService extends Service{
                 /*Only  start counting when we don't have any pending event. Otherwise stop.
                 This is to prevent the counter from restarting when the app resumes from background
                 */
-                isCancelled = timedDogPreferences.isBackground();
+                isCancelled = false;
                 //Creating another thread for counter
                 executorService.onRun(onStartCounting(beginCountObject.getTimeOutInMillis(),
                         beginCountObject.getLogoutActivityClassName()));
